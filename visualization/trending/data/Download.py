@@ -18,5 +18,5 @@ for line in sys.stdin:
 
 	subprocess.call(['curl', '-x', 'your proxy address', '-U', 'userID:password', '-o', directory, url])
 
-subprocess.call(['curl', '-x', 'your proxy address', '-U', 'userID:password', '-o', '/Users/bjo/playground/DataFactory/quotes/COMP.IDX', 'ichart.finance.yahoo.com/table.csv?s=^IXIC'])
+#subprocess.call(['curl', '-x', 'your proxy address', '-U', 'userID:password', '-o', '#your quote directory/COMP.IDX', 'ichart.finance.yahoo.com/table.csv?s=^IXIC'])
 print time.time() - start

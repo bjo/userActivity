@@ -145,7 +145,7 @@ for entry in prune:
 # 		print entry
 # 		print comp_list[entry]
 
-f = open('/Users/bjo/playground/Visualization/trending/data/stocks.json', 'w+')
+f = open('#your .json file directory', 'w+')
 f.write('[')
 for entry in comp_list:
 	f.write(json.dumps(comp_list[entry]))
