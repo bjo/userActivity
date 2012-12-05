@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 900,
+    height = 700;
+
+var color = d3.scale.category10();
+
+var force = d3.layout.force()
+    .charge(-150)
+    .linkDistance(60)
+    .size([width, height]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+d3.json("../../visualization/data/stocks.json", function(error, graph) {
+  force
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .start();
+
+  var link = svg.selectAll("line.link")
+      .data(graph.links)
+    .enter().append("line")
+      .attr("class", "link")
+      .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+
+  var node = svg.selectAll("circle.node")
+      .data(graph.nodes)
+    .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", function(d) {return Math.sqrt(d.count) / 10; })
+      .style("fill", function(d) { return color(d.group); })
+      .call(force.drag);
+
+  node.append("title")
+      .text(function(d) { return d.name; });
+
+  force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+  });
+});
+
+</script>
+
+<p>Color legend (industrial sectors):</p>
+<p>Orange: Technology</p>
+<p>Purple: Services</p>
+<p>Green: Healthcare</p>
+<p>Red: Financial</p>
+<p>Brown: Consumer/Industrial Goods</p>
+<p>Blue: Energy/Materials</p>
+<p>Pink: Index/Others</p>
+<p><i>Note: Color scheme might depend on your browser.</i></p>
+
+<p>Source: E*Trade Customer Activity, October 11 - November 10</p>
+
+<p>As per our previous discussion from <a href="../visualization">Correlation Matrix,</a> symbols from the same sector tend to be clustered together, with "Financial" and "Consumer/Industrial Goods" sector more intricately connected with others, while "Tech", "Services" and "Index/Others" showing tendencies to form their own. However, it is noteworthy to mention that since these are high-volume stocks in our site, they are more likely to be intricately connected. For less popular stocks in our site, correlation analysis turns out to be more "accurate" where stocks of high correlation tend to equal market peers in the industry. We can also observe that our customer base is overwhelmingly interested in "Tech" stocks.</p>
+
+<p>Want more? Also view other visualizations of E*Trade Customer Activity:
+
+<p><a href="../visualization">E*Trade Most Popular Stock Co-occurrence, Correlation Matrix</a></p>
+<p><a href="../trending">E*Trade Most Popular Stock Co-occurrence, Price Fluctuation, Trade Volume and E*Trade Trending Stocks</a></p>
+
+<p>For other visualization ideas and/or suggestions on current ones, please contact <a href="https://wiki.corp.etradegrp.com/index.php/User:Bjo">Brian Jo</a>.</p>
+
+<footer>
+  <aside>November 20, 2012</aside>
+</body>

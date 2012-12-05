@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>E*Trade Popular Stocks Co-occurrence</title>
+
+<style>
+
+@import url(../style.css?20120427);
+
+.background {
+  fill: #eee;
+}
+
+line {
+  stroke: #fff;
+}
+
+text.active {
+  fill: red;
+}
+
+</style>
+
+<script src="js/d3.v2.min.js"></script>
+
+<header>
+  <aside>November 30, 2012</aside>
+</header>
+
+<h1><i>Stocks Co-occurrence</i></h1>
+
+<aside style="margin-top:80px;">
+<p>Order: <select id="order">
+  <option value="name">by Name</option>
+  <option value="count">by Frequency</option>
+  <option value="group">by Cluster</option>
+</select>
+
+<p>Built with <a href="http://d3js.org/">d3.js</a>.
+</aside>
+
+<script>
+
+var margin = {top: 50, right: 50, bottom: 100, left: 80},
+    width = 1100,
+    height = 1100;
+
+var x = d3.scale.ordinal().rangeBands([0, width]),
+    z = d3.scale.linear().domain([0.05, 0.35]).clamp(true),
+    c = d3.scale.category10();
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .style("margin-left", margin.left + "px")
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.json("data/stocks.json", function(stocks) {
+  var matrix = [],
+      nodes = stocks.nodes,
+      n = nodes.length;
+
+  // Compute index per node.
+  nodes.forEach(function(node, i) {
+    node.index = i;
+    matrix[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
+  });
+
+  // Convert links to matrix; count character occurrences.
+  stocks.links.forEach(function(link) {
+    matrix[link.source][link.target].z += link.value;
+    matrix[link.target][link.source].z += link.value;
+  });
+
+  // Precompute the orders.
+  var orders = {
+    name: d3.range(n).sort(function(a, b) { return d3.ascending(nodes[a].name, nodes[b].name); }),
+    count: d3.range(n).sort(function(a, b) { return nodes[b].count - nodes[a].count; }),
+    group: d3.range(n).sort(function(a, b) { return nodes[b].group - nodes[a].group; })
+  };
+
+  // The default sort order.
+  x.domain(orders.name);
+
+  svg.append("rect")
+      .attr("class", "background")
+      .attr("width", width)
+      .attr("height", height);
+
+  var row = svg.selectAll(".row")
+      .data(matrix)
+    .enter().append("g")
+      .attr("class", "row")
+      .attr("transform", function(d, i) { return "translate(0," + x(i) + ")"; })
+      .each(row);
+
+  row.append("line")
+      .attr("x2", width);
+
+  row.append("text")
+      .attr("x", -6)
+      .attr("y", x.rangeBand() / 2)
+      .attr("dy", ".32em")
+      .attr("text-anchor", "end")
+      .text(function(d, i) { return nodes[i].name; });
+
+  var column = svg.selectAll(".column")
+      .data(matrix)
+    .enter().append("g")
+      .attr("class", "column")
+      .attr("transform", function(d, i) { return "translate(" + x(i) + ")rotate(-90)"; });
+
+  column.append("line")
+      .attr("x1", -width);
+
+  column.append("text")
+      .attr("x", 6)
+      .attr("y", x.rangeBand() / 2)
+      .attr("dy", ".32em")
+      .attr("text-anchor", "start")
+      .text(function(d, i) { return nodes[i].name; });
+
+  function row(row) {
+    var cell = d3.select(this).selectAll(".cell")
+        .data(row.filter(function(d) { return d.z; }))
+      .enter().append("rect")
+        .attr("class", "cell")
+        .attr("x", function(d) { return x(d.x); })
+        .attr("width", x.rangeBand())
+        .attr("height", x.rangeBand())
+        .style("fill-opacity", function(d) { return z(d.z); })
+        .style("fill", function(d) { return nodes[d.x].group == nodes[d.y].group ? c(nodes[d.x].group) : null; })
+        .on("mouseover", mouseover)
+        .on("mouseout", mouseout);
+  }
+
+  function mouseover(p) {
+    d3.selectAll(".row text").classed("active", function(d, i) { return i == p.y; });
+    d3.selectAll(".column text").classed("active", function(d, i) { return i == p.x; });
+  }
+
+  function mouseout() {
+    d3.selectAll("text").classed("active", false);
+  }
+
+  d3.select("#order").on("change", function() {
+    clearTimeout(timeout);
+    order(this.value);
+  });
+
+  function order(value) {
+    x.domain(orders[value]);
+
+    var t = svg.transition().duration(2500);
+
+    t.selectAll(".row")
+        .delay(function(d, i) { return x(i) * 4; })
+        .attr("transform", function(d, i) { return "translate(0," + x(i) + ")"; })
+      .selectAll(".cell")
+        .delay(function(d) { return x(d.x) * 4; })
+        .attr("x", function(d) { return x(d.x); });
+
+    t.selectAll(".column")
+        .delay(function(d, i) { return x(i) * 4; })
+        .attr("transform", function(d, i) { return "translate(" + x(i) + ")rotate(-90)"; });
+  }
+
+  var timeout = setTimeout(function() {
+    order("group");
+    d3.select("#order").property("selectedIndex", 2).node().focus();
+  }, 5000);
+});
+
+</script>
+
+<p>Color legend (industrial sectors):</p>
+<p>Blue: Technology</p>
+<p>Red: Services</p>
+<p>Orange: Healthcare</p>
+<p>Green: Financial</p>
+<p>Brown: Consumer/Industrial Goods</p>
+<p>Purple: Energy/Materials</p>
+<p>Pink: Index/Others</p>
+<p><i>Note: Color scheme might depend on your browser.</i></p>
+
+<p>Source: E*Trade Customer Activity, October 11 - November 10</p>
+
+<p>A network can be represented by an <i><a href="http://en.wikipedia.org/wiki/Adjacency_matrix">adjacency matrix</a></i>, where each cell <i>ij</i> represents an edge from vertex <i>i</i> to vertex <i>j</i>. Here, vertices represent the top 84 ticker symbols that our userbase is the most interested in, and the edges represent the correlation between user searches. (i.e. How much a user searching for "AAPL" is likely to search for "FB"?) Darker colors represent higher correlation. Tickers in the same "sector", as defined by <a href="http://finance.yahoo.com">Yahoo! Finance</a> have their correlations color-coded while tickers in different sectors have no color-code. Only "significant" (>0.1) correlations are shown.</p>
+
+<p>Immediately, we can take note of some 'rivaling' pairs of stocks that are very highly correlated that agree with our intuition. (i.e. GLD and SLV, AAPL and GOOG, VZ and T, LOW and HD, BAC and C, GM and F, etc.)</p>
+
+<p>As it can be seen, symbols in the same "sector" tend to be highly correlated, but the traditional definition of industrial sectors doesn't necessarily represent customer interest; it can be seen that companies such as AMZN, NFLX and PCLN are grouped in the "Services" sector but they are more correlated with companies in the "Tech" sector. Meanwhile, it can also be seen that the "Tech" sector forms a megacluster with "Services" sector, while "Financial" sector shows high correlation with all sectors, but particularly with "Consumer/Industrial Goods". A better representation of the relationships between different sectors is the <a href="../visualization2">Force-Directed Graph</a> version of the same data.</p>
+
+<p>Given this two-dimensional representation of a graph, a natural visualization is to show the matrix! However, the effectiveness of a matrix diagram is heavily dependent on the order of rows and columns: if related nodes are placed closed to each other, it is easier to identify clusters and bridges.
+
+<p>While path-following is harder in a matrix view than in a <a href="http://mbostock.github.com/d3/ex/force.html">node-link diagram</a>, matrices have other advantages. As networks get large and highly connected, node-link diagrams often devolve into giant hairballs of line crossings. Line crossings are impossible with matrix views. Matrix cells can also be encoded to show additional data; here color depicts clusters computed by a community-detection algorithm.
+
+<p>Want more? See this analysis of <a href="../shuffle/compare.html">shuffling algorithms</a> using matrix diagrams. Also view other visualizations of E*Trade Customer Activity:
+
+<p><a href="../visualization2">E*Trade Most Popular Stock Co-occurrence, Force-Directed Graph</a></p>
+<p><a href="../trending">E*Trade Most Popular Stock Co-occurrence, Price Fluctuation, Trade Volume and E*Trade Trending Stocks</a></p>
+
+<p>For other visualization ideas and/or suggestions on current ones, please contact <a href="https://wiki.corp.etradegrp.com/index.php/User:Bjo">Brian Jo</a>.</p>
+
+<footer>
+  <aside>November 30, 2012</aside>
+</footer>
+
+
