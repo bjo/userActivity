@@ -4,7 +4,7 @@
 
 import os, sys, math
 
-path = "/Users/bjo/playground/Recommender/"
+path = "#your path for trenders"
 
 old_vector = sys.argv[1]
 f1 = open(path + old_vector)

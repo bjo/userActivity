@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# or your python directory
+# Remove all comments on print statements for debugging purposes.
 
 import os, sys, re, math
 import time
@@ -6,7 +8,7 @@ import time
 comp_map = {}
 user_map = {}
 
-print "Building User Map"
+#print "Building User Map"
 
 start = time.time()
 
@@ -25,7 +27,7 @@ for line in sys.stdin:
 			user_map[user].append(item)
 			comp_map[item] += 1
 
-print len(comp_map)
+#print len(comp_map)
 
 prune = []
 
@@ -37,13 +39,13 @@ for entry in prune:
 	del comp_map[entry]
 
 map_size = len(comp_map)
-print map_size
+#print map_size
 i = 0
 matrix = []
 
 all_stocks = sorted(comp_map)
 
-f = open('/Users/bjo/playground/Recommender/comp_list', 'w+')
+f = open('#your directory for your list of symbols', 'w+')
 f.write(str(len(all_stocks)) + ' ' + ' '.join([str(k) for k in all_stocks]))
 f.flush()
 f.close()
@@ -53,7 +55,7 @@ while i < map_size:
 	i += 1
 
 total = len(user_map)
-print total
+#print total
 i = 0
 
 for user in user_map:
@@ -67,8 +69,8 @@ for user in user_map:
 					if a != b:
 						matrix[a][b] += 1
 	i += 1
-	if i % 10000 == 0:
-		print i
+	#if i % 10000 == 0:
+	#	print i
 
 lengths = []
 matrix1 = []
@@ -79,9 +81,9 @@ while i < len(matrix):
 	matrix1.append([0 for k in range(len(matrix))])
 	i += 1
 
-print time.time() - start
+#print time.time() - start
 
-print "Starting Matrix Calculations"
+#print "Starting Matrix Calculations"
 
 start = time.time()
 
@@ -106,12 +108,12 @@ while i < len(matrix):
 		j += 1
 	i += 1
 
-print time.time() - start
+#print time.time() - start
 
-f2 = open('/Users/bjo/playground/Recommender/matrix', 'w+')
-f3 = open('/Users/bjo/playground/Recommender/index', 'w+')
+f2 = open('#your directory for your matrix', 'w+')
+f3 = open('#your directory for your index', 'w+')
 
-print "Building Indexes"
+#print "Building Indexes"
 
 start = time.time()
 
@@ -139,10 +141,10 @@ while i < len(matrix):
 
 	i += 1
 
-	if i % 1000 == 0:
-		print "1000"
+	#if i % 1000 == 0:
+	#	print "1000"
 
-print time.time() - start
+#print time.time() - start
 
 f2.close()
 f3.close()

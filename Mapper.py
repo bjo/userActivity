@@ -3,7 +3,7 @@
 
 import sys, re, time, string
 
-start = time.time()
+#start = time.time()
 previd = ""
 prevsym = ""
 
@@ -35,4 +35,4 @@ for line in sys.stdin:
 
 	sys.stdout.flush()
 
-print time.time() - start
+#print time.time() - start
